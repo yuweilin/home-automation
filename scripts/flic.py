@@ -42,10 +42,14 @@ class FlicScanner():
     self.client.add_scan_wizard(flic_wizard)
 
   def Run(self):
-    self.client.get_info()
-    self.loop.run_forever()
-    self.client.close()
-    self.loop.close()
+    try:
+      self.client.get_info()
+      self.loop.run_forever()
+    except:
+      self.Stop()
+    finally:
+      self.client.close()
+      self.loop.close()
 
   def Stop(self):
     self.loop.stop()
@@ -59,9 +63,4 @@ if __name__ == '__main__':
     for line in fin:
       name, address = line.strip().split(',')  
       scanner.AddAction(address, PrintFunc(name, address))
-  try:
-    scanner.Run()
-  except:
-    print("Exit!")
-  finally:
-    scanner.Stop()
+  scanner.Run()
