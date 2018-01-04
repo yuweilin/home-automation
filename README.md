@@ -1,6 +1,6 @@
 1. data/
-  - flic: <button name>,<mac address>
-  - hs100: <plug name>,<ip address>
+  - flic: \<button name\>,\<mac address\>
+  - hs100: \<plug name\>,\<ip address\>
 
 2. lib/
   - fliclib-linux-hci
