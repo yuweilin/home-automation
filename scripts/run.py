@@ -1,9 +1,10 @@
 #!/bin/bash python3
 import csv
+from collections import defaultdict
 
 from util import GetLogger
-from hs100 import HS100
-from flic import FlicScanner
+from hs100 import HS100,HS100Group
+from flic import FlicScanner,ClickType
 
 def main():
   hs100s = {}
@@ -12,16 +13,29 @@ def main():
     for name, ip in reader:
       hs100s[name] = HS100(name, ip)
   
-  pairing = {
-    'black': hs100s['LivingRoomPlug'].switch,
-    'white': hs100s['BedRoomPlug'].switch
-  }
+  with open('../data/hs100_groups.csv', 'r') as f:
+    reader = csv.reader(f, delimiter=',')
+    for line in reader:
+      name = line[0]
+      plugs = [hs100s[plug] for plug in line[1:] if plug in hs100s]
+      hs100s[name] = HS100Group(name, plugs)
+
+  pairing = defaultdict(list)
+  with open('../data/pairing.csv', 'r') as f:
+    reader = csv.reader(f, delimiter=',')
+    for flic_name, click_type, hs100 in reader:
+      try:
+        click_type = ClickType[click_type]
+      except:
+        click_type = None
+      pairing[flic_name].append((click_type, hs100s[hs100].switch))
 
   scanner = FlicScanner()
   with open('../data/flic.csv', 'r') as f:
     reader = csv.reader(f, delimiter=',')
     for name, address in reader:
-      scanner.AddAction(address, pairing[name])
+      for click_type, action in pairing[name]:
+        scanner.AddAction(address, click_type, action)
   
   scanner.Run()
 
